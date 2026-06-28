@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>NexDoc</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<link rel="stylesheet" href="nexdoc.css">
+</head>
+<body>
+<div id="splash">
+  <canvas id="splash-canvas"></canvas>
+  <div class="splash-ring">
+    <div class="splash-icon">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="12" y2="17"/></svg>
+    </div>
+  </div>
+  <div class="splash-name">NexDoc</div>
+  <div class="splash-tagline" data-i18n="tagline">Contract Management</div>
+  <div class="splash-bar-wrap"><div class="splash-bar"></div></div>
+  <div class="splash-version">v3.0</div>
+</div>
+
+<header class="topbar">
+  <div class="brand">
+    <div class="brand-icon">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="12" y2="17"/></svg>
+    </div>
+    <div>
+      <div class="brand-name">NexDoc</div>
+    </div>
+  </div>
+  <span id="topbarTitle" class="topbar-title" style="display:none"></span>
+  <button class="info-btn" onclick="toggleInfo()" id="infoBtn" aria-label="Sobre &amp; Ajuda">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12.01" y2="8" stroke-width="3" stroke-linecap="round"/><line x1="12" y1="12" x2="12" y2="16" stroke-linecap="round"/></svg>
+  </button>
+</header>
+
+<div class="content">
+
+  <!-- ══ PAINEL ══ -->
+  <section id="view-dashboard">
+    <div class="kpi-strip">
+      <div class="kpi-card"><span class="kpi-num" id="kpiTotal">0</span><div class="kpi-label" data-i18n="kpiTotal">Total</div></div>
+      <div class="kpi-card"><span class="kpi-num" id="kpiRascunho">0</span><div class="kpi-label" data-i18n="kpiDrafts">Drafts</div></div>
+      <div class="kpi-card"><span class="kpi-num" id="kpiPendente">0</span><div class="kpi-label" data-i18n="kpiPending">Pending</div></div>
+      <div class="kpi-card"><span class="kpi-num" id="kpiAssinado">0</span><div class="kpi-label" data-i18n="kpiSigned">Signed</div></div>
+    </div>
+    <div class="section-row"><h2 data-i18n="recent">Recent</h2></div>
+    <div id="dashboardList"></div>
+  </section>
+
+  <!-- ══ ARQUIVO ══ -->
+  <section id="view-archive" style="display:none">
+    <div class="section-row" style="justify-content:flex-end">
+      <div class="search-wrap" style="max-width:100%;flex:1">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.6" y2="16.6"/></svg>
+        <input type="text" id="archiveSearch" placeholder="Search…" data-i18n-placeholder="searchPlaceholder" oninput="renderArchive()">
+      </div>
+    </div>
+    <div class="filter-row">
+      <div class="filter-chips" id="statusFilterChips">
+        <button class="filter-chip active" data-status="todos" onclick="setStatusFilter('todos')" data-i18n="filterAll">All</button>
+        <button class="filter-chip" data-status="rascunho" onclick="setStatusFilter('rascunho')" data-i18n="statusDraft">Draft</button>
+        <button class="filter-chip" data-status="pendente" onclick="setStatusFilter('pendente')" data-i18n="statusPending">Pending</button>
+        <button class="filter-chip" data-status="assinado" onclick="setStatusFilter('assinado')" data-i18n="statusSigned">Signed</button>
+      </div>
+      <select id="archiveSort" class="sort-select" onchange="renderArchive()">
+        <option value="date-desc" data-i18n-opt="sortDateDesc">Date ↓</option>
+        <option value="date-asc" data-i18n-opt="sortDateAsc">Date ↑</option>
+        <option value="value-desc" data-i18n-opt="sortValueDesc">Value ↓</option>
+        <option value="value-asc" data-i18n-opt="sortValueAsc">Value ↑</option>
+      </select>
+    </div>
+    <div id="archiveList"></div>
+  </section>
+
+  <!-- ══ EDITOR ══ -->
+  <section id="view-editor" style="display:none">
+    <div class="editor-header">
+      <h2 id="editorHeading" data-i18n="newContract">New Contract</h2>
+    </div>
+
+    <!-- IMPORTAR FICHEIRO -->
+    <div class="import-area" onclick="document.getElementById('importFileInput').click()" id="importZone">
+      <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      <p data-i18n="importText">Upload file from device<br><strong>TXT, HTML, DOCX</strong> — to edit here</p>
+    </div>
+    <input type="file" id="importFileInput" accept=".txt,.html,.htm,.docx" onchange="importFile(event)">
+
+    <div class="meta-grid">
+      <div class="field">
+        <label data-i18n="labelTitle">Title</label>
+        <input type="text" id="fTitle" placeholder="Contract title" data-i18n-placeholder="titlePlaceholder">
+      </div>
+      <div class="meta-row">
+        <div class="field">
+          <label data-i18n="labelType">Type</label>
+          <select id="fType" onchange="handleTypeChange(this.value)">
+            <option value="service" data-i18n-opt="typeService">Service Agreement</option>
+            <option value="nda" data-i18n-opt="typeNDA">Non-Disclosure Agreement</option>
+            <option value="lease" data-i18n-opt="typeLease">Lease</option>
+            <option value="sale" data-i18n-opt="typeSale">Sale & Purchase</option>
+            <option value="employment" data-i18n-opt="typeEmployment">Employment Contract</option>
+            <option value="poa" data-i18n-opt="typePOA">Power of Attorney</option>
+            <option value="other" data-i18n-opt="typeOther">Other</option>
+          </select>
+          <input type="text" id="fTypeCustom" placeholder="Specify the contract type" data-i18n-placeholder="typeCustomPlaceholder" style="display:none;margin-top:8px;width:100%;background:var(--surface);border:1px solid var(--border2);border-radius:10px;padding:11px 13px;font-size:14px;color:var(--text);outline:none;transition:border-color 0.15s" onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--border2)'">
+        </div>
+        <div class="field">
+          <label data-i18n="labelValue">Value</label>
+          <div style="display:flex;gap:6px;align-items:stretch">
+            <!-- Currency Smart Search -->
+            <div id="currencyPickerWrap" style="position:relative;flex-shrink:0">
+              <button type="button" id="currencyBtn" onclick="toggleCurrencyDropdown()" style="height:100%;background:var(--surface);border:1px solid var(--border2);border-radius:10px;padding:0 10px;font-size:13px;color:var(--text);outline:none;cursor:pointer;min-width:70px;display:flex;align-items:center;justify-content:center;gap:4px;white-space:nowrap">
+                <span id="currencyBtnLabel" style="color:var(--text-muted)">— —</span>
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+              <div id="currencyDropdown" style="display:none;position:absolute;top:calc(100% + 6px);left:0;width:240px;background:var(--surface2);border:1px solid var(--border2);border-radius:12px;z-index:9999;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.5)">
+                <div style="padding:8px 8px 4px">
+                  <div style="position:relative">
+                    <svg style="position:absolute;left:9px;top:50%;transform:translateY(-50%);width:13px;height:13px;stroke:var(--text-muted);fill:none;stroke-width:2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.6" y2="16.6"/></svg>
+                    <input type="text" id="currencySearch" placeholder="Search currency…" data-i18n-placeholder="currencySearchPlaceholder" oninput="filterCurrencies()" autocomplete="off" style="width:100%;background:var(--surface);border:1px solid var(--border2);border-radius:8px;padding:8px 10px 8px 28px;font-size:13px;color:var(--text);outline:none;font-family:inherit">
+                  </div>
+                </div>
+                <div id="currencyList" style="max-height:220px;overflow-y:auto;padding:4px 0 8px"></div>
+              </div>
+            </div>
+            <input type="number" id="fValue" placeholder="0" min="0" style="flex:1">
+          </div>
+        </div>
+      </div>
+      <div class="meta-row">
+        <div class="field">
+          <label data-i18n="labelPartyA">1st Party</label>
+          <input type="text" id="fPartyA" placeholder="Name / company" data-i18n-placeholder="partyPlaceholder">
+        </div>
+        <div class="field">
+          <label data-i18n="labelPartyB">2nd Party</label>
+          <input type="text" id="fPartyB" placeholder="Name / company" data-i18n-placeholder="partyPlaceholder">
+        </div>
+      </div>
+      <div class="field">
+        <label data-i18n="labelExpiry">Expiry date</label>
+        <input type="date" id="fExpiry" style="max-width:220px">
+      </div>
+      <div class="field">
+        <label data-i18n="labelNotes">Internal notes</label>
+        <textarea id="fNotes" rows="3" placeholder="Notas visíveis apenas dentro da app" data-i18n-placeholder="notesPlaceholder"></textarea>
+        <div class="field-hint" data-i18n="notesHint">Not included in the printed PDF.</div>
+      </div>
+    </div>
+
+    <!-- TOOLBAR ESTILO WORD -->
+    <div class="toolbar-wrap">
+      <div class="toolbar-row1">
+        <!-- Formatação de texto -->
+        <button class="tb-btn tb-btn-text" id="tbBold" onclick="toggleFmt('bold')" data-i18n-title="tbBold"><b>N</b></button>
+        <button class="tb-btn tb-btn-text" id="tbItalic" onclick="toggleFmt('italic')" data-i18n-title="tbItalic"><i>I</i></button>
+        <button class="tb-btn tb-btn-text" id="tbUnderline" onclick="toggleFmt('underline')" data-i18n-title="tbUnderline"><u>S</u></button>
+        <button class="tb-btn" id="tbStrike" onclick="toggleFmt('strikeThrough')" data-i18n-title="tbStrike">
+          <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><path d="M16 6C16 6 14.5 4 12 4C9.5 4 7 5.5 7 8C7 10.5 9 11.5 12 12"/><path d="M8 17C8 17 9.5 20 12 20C14.5 20 17 18.5 17 16C17 14.5 16 13.5 14 13"/></svg>
+        </button>
+        <div class="tb-sep"></div>
+        <!-- Blocos de texto -->
+        <select class="tb-select" onchange="cmd('formatBlock', this.value); this.value=''" data-i18n-title="tbStyleSelect">
+          <option value="" data-i18n-opt="tbStylePlaceholder">Style…</option>
+          <option value="p" data-i18n-opt="tbStyleParagraph">Paragraph</option>
+          <option value="h1" data-i18n-opt="tbStyleH1">Heading 1</option>
+          <option value="h2" data-i18n-opt="tbStyleH2">Heading 2</option>
+          <option value="h3" data-i18n-opt="tbStyleH3">Heading 3</option>
+          <option value="blockquote" data-i18n-opt="tbStyleQuote">Quote</option>
+          <option value="pre" data-i18n-opt="tbStyleCode">Code</option>
+        </select>
+        <div class="tb-sep"></div>
+        <!-- Tipo de letra -->
+        <select class="tb-select" onchange="cmd('fontName', this.value)" data-i18n-title="tbFontSelect">
+          <option value="Inter" data-i18n-opt="tbFontDefault">Default (Inter)</option>
+          <option value="Instrument Serif" data-i18n-opt="tbFontClassic">Classic</option>
+          <option value="JetBrains Mono">Mono</option>
+          <option value="Georgia">Georgia</option>
+          <option value="Arial">Arial</option>
+          <option value="Times New Roman">Times New Roman</option>
+        </select>
+        <!-- Tamanho -->
+        <select class="tb-select" onchange="cmd('fontSize', this.value)" data-i18n-title="tbFontSize">
+          <option value="1">8pt</option>
+          <option value="2">10pt</option>
+          <option value="3" selected>12pt</option>
+          <option value="4">14pt</option>
+          <option value="5">18pt</option>
+          <option value="6">24pt</option>
+          <option value="7">36pt</option>
+        </select>
+      </div>
+      <div class="toolbar-row2">
+        <!-- Alinhamento -->
+        <button class="tb-btn" onclick="cmd('justifyLeft')" data-i18n-title="tbAlignLeft">
+          <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="15" y2="12"/><line x1="3" y1="18" x2="18" y2="18"/></svg>
+        </button>
+        <button class="tb-btn" onclick="cmd('justifyCenter')" data-i18n-title="tbAlignCenter">
+          <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="6" y1="12" x2="18" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg>
+        </button>
+        <button class="tb-btn" onclick="cmd('justifyRight')" data-i18n-title="tbAlignRight">
+          <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="9" y1="12" x2="21" y2="12"/><line x1="6" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <button class="tb-btn" onclick="cmd('justifyFull')" data-i18n-title="tbAlignJustify">
+          <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <div class="tb-sep"></div>
+        <!-- Listas -->
+        <button class="tb-btn" onclick="cmd('insertUnorderedList')" data-i18n-title="tbListBullet">
+          <svg viewBox="0 0 24 24"><line x1="9" y1="6" x2="20" y2="6"/><line x1="9" y1="12" x2="20" y2="12"/><line x1="9" y1="18" x2="20" y2="18"/><circle cx="4" cy="6" r="1.2" fill="currentColor" stroke="none"/><circle cx="4" cy="12" r="1.2" fill="currentColor" stroke="none"/><circle cx="4" cy="18" r="1.2" fill="currentColor" stroke="none"/></svg>
+        </button>
+        <button class="tb-btn" onclick="cmd('insertOrderedList')" data-i18n-title="tbListOrdered">
+          <svg viewBox="0 0 24 24"><line x1="10" y1="6" x2="20" y2="6"/><line x1="10" y1="12" x2="20" y2="12"/><line x1="10" y1="18" x2="20" y2="18"/><path d="M4 8V4l-1.5 1" stroke-linecap="round"/><path d="M3 14h2l-2 4h2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <button class="tb-btn" onclick="cmd('outdent')" data-i18n-title="tbIndentDecrease">
+          <svg viewBox="0 0 24 24"><polyline points="11 17 6 12 11 7"/><line x1="18" y1="12" x2="6" y2="12" opacity="0"/><line x1="13" y1="6" x2="21" y2="6"/><line x1="13" y1="12" x2="21" y2="12"/><line x1="13" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <button class="tb-btn" onclick="cmd('indent')" data-i18n-title="tbIndentIncrease">
+          <svg viewBox="0 0 24 24"><polyline points="13 17 18 12 13 7"/><line x1="3" y1="6" x2="11" y2="6"/><line x1="3" y1="12" x2="11" y2="12"/><line x1="3" y1="18" x2="11" y2="18"/></svg>
+        </button>
+        <div class="tb-sep"></div>
+        <!-- Extras -->
+        <button class="tb-btn" onclick="insertHR()" data-i18n-title="tbHRule">
+          <svg viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="7" x2="8" y2="7" stroke-width="1"/><line x1="3" y1="17" x2="8" y2="17" stroke-width="1"/></svg>
+        </button>
+        <button class="tb-btn" onclick="insertLink()" data-i18n-title="tbInsertLink">
+          <svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+        </button>
+        <button class="tb-btn" onclick="cmd('removeFormat')" data-i18n-title="tbClearFormat">
+          <svg viewBox="0 0 24 24"><line x1="4" y1="7" x2="14" y2="7"/><line x1="9" y1="4" x2="9" y2="14"/><line x1="3" y1="20" x2="21" y2="20"/><line x1="16" y1="4" x2="21" y2="14"/><line x1="21" y1="4" x2="16" y2="14"/></svg>
+        </button>
+        <div class="tb-sep"></div>
+        <button class="tb-btn" onclick="cmd('undo')" data-i18n-title="tbUndo">
+          <svg viewBox="0 0 24 24"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 00-4-4H4"/></svg>
+        </button>
+        <button class="tb-btn" onclick="cmd('redo')" data-i18n-title="tbRedo">
+          <svg viewBox="0 0 24 24"><polyline points="15 14 20 9 15 4"/><path d="M4 20v-7a4 4 0 014-4h12"/></svg>
+        </button>
+        <!-- Cor do texto -->
+        <div class="tb-sep"></div>
+        <label class="tb-btn" data-i18n-title="tbTextColor" style="position:relative">
+          <svg viewBox="0 0 24 24"><path d="M4 20h4l10.5-10.5a2 2 0 000-2.83l-1.17-1.17a2 2 0 00-2.83 0L4 16v4z"/><line x1="13.5" y1="6.5" x2="17.5" y2="10.5"/></svg>
+          <input type="color" id="txtColor" value="#F0EDE6" oninput="cmd('foreColor', this.value)" style="position:absolute;opacity:0;width:0;height:0">
+        </label>
+        <label class="tb-btn" data-i18n-title="tbBgColor" style="position:relative">
+          <svg viewBox="0 0 24 24"><path d="M20 11l-8-8-9 9 4 4"/><path d="M5 16l4 4 4-4"/><line x1="2" y1="22" x2="22" y2="22"/></svg>
+          <input type="color" id="bgColor" value="#C9A84C" oninput="cmd('hiliteColor', this.value)" style="position:absolute;opacity:0;width:0;height:0">
+        </label>
+      </div>
+    </div>
+
+    <div class="editor-area" id="editorArea" contenteditable="true" spellcheck="true"></div>
+
+    <div class="editor-actions">
+      <button class="btn-secondary" onclick="cancelEdit()" data-i18n="btnCancel">Cancel</button>
+      <button class="btn-secondary" onclick="saveDocument('rascunho')" data-i18n="btnSaveDraft">Save Draft</button>
+      <button class="btn-primary" onclick="saveDocument('pendente')" data-i18n="btnSendSign">Send to Sign</button>
+    </div>
+  </section>
+
+</div>
+
+<!-- ══ NAV ══ -->
+<nav class="bottomnav">
+  <button class="nav-btn active" data-view="dashboard" onclick="switchView('dashboard')">
+    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+    <span data-i18n="navDashboard">Dashboard</span>
+  </button>
+  <button class="fab" onclick="openEditor(null)" title="Novo contrato">
+    <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+  </button>
+  <button class="nav-btn" data-view="archive" onclick="switchView('archive')">
+    <svg viewBox="0 0 24 24"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
+    <span data-i18n="navArchive">Archive</span>
+  </button>
+</nav>
+
+<!-- ══ DETAIL SHEET ══ -->
+<div class="sheet-overlay" id="sheetOverlay" onclick="handleOverlayClick(event)">
+  <div class="sheet" id="sheetPanel"></div>
+</div>
+
+<!-- ══ MODAL CONFIRMAÇÃO ══ -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h3 id="modalTitle"></h3>
+    <p id="modalMsg"></p>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal()" data-i18n="btnCancel">Cancel</button>
+      <button class="btn-danger btn-secondary" id="modalConfirm" data-i18n="btnDelete">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ TOAST ══ -->
+<div class="toast" id="toast"></div>
+
+<!-- ══ PAINEL INFO / SOBRE ══ -->
+<div class="info-overlay" id="infoOverlay" onclick="handleInfoOverlay(event)">
+  <div class="info-panel" id="infoPanel">
+    <div class="info-close-row">
+      <button class="info-close" onclick="toggleInfo()">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <div class="info-block" style="margin-bottom:6px">
+      <div class="info-block-title" data-i18n="infoLangTitle">Language</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">
+        <button class="lang-btn" data-lang="en" onclick="setLang('en')">🇬🇧 English</button>
+        <button class="lang-btn" data-lang="pt" onclick="setLang('pt')">🇵🇹 Português</button>
+        <button class="lang-btn" data-lang="fr" onclick="setLang('fr')">🇫🇷 Français</button>
+        <button class="lang-btn" data-lang="es" onclick="setLang('es')">🇪🇸 Español</button>
+      </div>
+    </div>
+
+    <div class="info-block">
+      <div class="info-block-title" data-i18n="infoHowTitle">How to use</div>
+      <div class="info-step"><div class="info-step-num">1</div><div class="info-step-text" data-i18n="step1">Tap the <strong>+</strong> button to create a new contract. Fill in the title, type, parties and value.</div></div>
+      <div class="info-step"><div class="info-step-num">2</div><div class="info-step-text" data-i18n="step2">Write content in the <strong>text editor</strong> — you have Word-like formatting tools.</div></div>
+      <div class="info-step"><div class="info-step-num">3</div><div class="info-step-text" data-i18n="step3">Save as <strong>Draft</strong> or send to <strong>Sign</strong>. Documents are stored in Archive.</div></div>
+      <div class="info-step"><div class="info-step-num">4</div><div class="info-step-text" data-i18n="step4">Open a pending contract and <strong>draw your digital signature</strong> directly on screen.</div></div>
+      <div class="info-step"><div class="info-step-num">5</div><div class="info-step-text" data-i18n="step5">Tap <strong>Print / PDF</strong> — the dialog opens automatically, choose "Save as PDF".</div></div>
+    </div>
+
+    <div class="info-block">
+      <div class="info-block-title" data-i18n="infoFeatTitle">Features</div>
+      <div class="info-step"><div class="info-step-num">✦</div><div class="info-step-text" data-i18n="feat1"><strong>Rich Editor</strong> — bold, italic, headings, lists, tables and colours.</div></div>
+      <div class="info-step"><div class="info-step-num">✦</div><div class="info-step-text" data-i18n="feat2"><strong>Digital Signature</strong> with SHA-256 hash for authenticity.</div></div>
+      <div class="info-step"><div class="info-step-num">✦</div><div class="info-step-text" data-i18n="feat3"><strong>Import files</strong> TXT or DOC to edit directly.</div></div>
+      <div class="info-step"><div class="info-step-num">✦</div><div class="info-step-text" data-i18n="feat4"><strong>Offline data</strong> — everything saved on your device, no server.</div></div>
+      <div class="info-step"><div class="info-step-num">✦</div><div class="info-step-text" data-i18n="feat5"><strong>Export PDF</strong> — choose "Save as PDF" in the print dialog.</div></div>
+    </div>
+
+    <div class="info-block">
+      <div class="info-block-title" data-i18n="infoPdfLogoTitle">PDF Logo</div>
+      <div id="logoPreviewWrap" style="display:none;margin-bottom:10px">
+        <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:10px;display:flex;align-items:center;gap:10px">
+          <img id="logoPreviewImg" style="max-height:40px;max-width:100px;object-fit:contain;border-radius:4px" alt="Logo">
+          <div style="flex:1;min-width:0">
+            <div style="font-size:12px;color:var(--text);font-weight:600" id="logoFileName">logo.png</div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:2px" data-i18n="infoLogoHint">Appears in the PDF header</div>
+          </div>
+          <button onclick="removeLogo()" style="background:var(--red-dim);border:1px solid rgba(242,96,96,0.2);border-radius:7px;padding:5px 8px;color:var(--red);font-size:11px;font-weight:600;cursor:pointer">✕</button>
+        </div>
+      </div>
+      <label style="display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px dashed var(--border2);border-radius:10px;padding:10px 14px;cursor:pointer;transition:border-color 0.15s" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--border2)'" id="logoUploadLabel">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        <span style="font-size:12.5px;color:var(--text-muted)"><span data-i18n="infoChooseImage">Choose image</span> <strong style="color:var(--gold)">PNG, JPG, SVG</strong></span>
+        <input type="file" id="logoFileInput" accept="image/png,image/jpeg,image/svg+xml,image/webp" style="display:none" onchange="handleLogoUpload(event)">
+      </label>
+    </div>
+
+    <div class="info-block">
+      <div class="info-block-title" data-i18n="infoAppearanceTitle">Appearance</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:12px 14px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:32px;height:32px;border-radius:8px;background:var(--gold-dim);border:1px solid rgba(201,168,76,0.3);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2" id="themeIconInPanel"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+          </div>
+          <span style="font-size:13px;color:var(--text-soft);font-weight:500" id="themeLabelInPanel" data-i18n="themeDark">Dark theme</span>
+        </div>
+        <button onclick="toggleTheme()" style="background:var(--gold-dim);border:1px solid rgba(201,168,76,0.3);border-radius:8px;padding:7px 16px;color:var(--gold);font-size:12px;font-weight:600;cursor:pointer;transition:background 0.15s" data-i18n="infoThemeToggle">Toggle</button>
+      </div>
+    </div>
+
+    <div class="info-block">
+      <div class="info-block-title" data-i18n="infoDataTitle">Data</div>
+      <p class="field-hint" style="margin-bottom:10px" data-i18n="dataBackupHint">Export all your contracts to a .json file, or restore them from a previous backup.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn-secondary btn-sm" onclick="exportBackupJson()">
+          <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <span data-i18n="btnExportBackup">Export backup (.json)</span>
+        </button>
+        <label class="btn-secondary btn-sm" style="cursor:pointer;margin:0">
+          <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <span data-i18n="btnImportBackup">Import backup (.json)</span>
+          <input type="file" id="backupFileInput" accept="application/json,.json" style="display:none" onchange="handleBackupFile(event)">
+        </label>
+      </div>
+    </div>
+
+    <div class="info-block">
+      <div class="info-block-title" data-i18n="infoDevTitle">Developer</div>
+      <div class="dev-card">
+        <div class="dev-card-head">
+          <div class="dev-avatar">Cx<span style="color:var(--gold)">i5</span></div>
+          <div>
+            <div class="dev-name">Leonardo Sebastião</div>
+            <div class="dev-role">Front-end Developer · Luanda, Angola &#127462;&#127476;</div>
+          </div>
+        </div>
+        <p class="dev-bio" data-i18n="devBio">Front-end developer with 3 years of experience. Builds websites, platforms and web apps. NexDoc is one of his projects.</p>
+        <div class="dev-links">
+          <button onclick="openExternal('https://cxi5.site.je/?i=1')" class="dev-link">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20"/></svg>
+            Portfólio
+          </button>
+          <button onclick="openExternal('https://wa.me/244972445044')" class="dev-link wa">
+            <svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a13 13 0 00-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+            WhatsApp
+          </button>
+          <button onclick="openExternal('https://github.com/cxi5')" class="dev-link">
+            <svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+            GitHub
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="info-version">NexDoc v3.0 &nbsp;·&nbsp; Luanda, Angola &#127462;&#127476;</div>
+  </div>
+</div>
+
+<script src="nexdoc.js"></script>
+</body>
+</html>
