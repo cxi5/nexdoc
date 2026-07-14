@@ -1,6 +1,4 @@
-// ────────────────────────────────────────────────
 // SPLASH SCREEN
-// ────────────────────────────────────────────────
 (function() {
   const canvas = document.getElementById('splash-canvas');
   const ctx = canvas.getContext('2d');
@@ -59,9 +57,7 @@
   });
 })();
 
-// ────────────────────────────────────────────────
-// ARMAZENAMENTO — localStorage + fallback memória
-// ────────────────────────────────────────────────
+// ARMAZENAMENTO — localStorage + fallback de memória
 const STORAGE_KEY = 'nexdoc_v3';
 let _memFallback = [];
 
@@ -84,18 +80,14 @@ function saveDocs() {
   _memFallback = documents.slice();
 }
 
-// ────────────────────────────────────────────────
 // ESTADO
-// ────────────────────────────────────────────────
 let documents = loadDocs();
 let currentSheetId = null;
 let currentEditId = null;
 let _editorSnapshot = null;
 let sigCtx = null, drawing = false;
 
-// ────────────────────────────────────────────────
 // UTILITÁRIOS
-// ────────────────────────────────────────────────
 function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
 function kz(v, currency) {
   if (!v || Number(v) <= 0) return '—';
@@ -144,9 +136,7 @@ function showToast(msg, dur = 2400) {
   setTimeout(() => t.classList.remove('show'), dur);
 }
 
-// ────────────────────────────────────────────────
 // MODAL DE CONFIRMAÇÃO
-// ────────────────────────────────────────────────
 let _modalCb = null;
 function openModal(title, msg, cb, confirmLabel) {
   document.getElementById('modalTitle').textContent = title;
@@ -157,9 +147,8 @@ function openModal(title, msg, cb, confirmLabel) {
 }
 function closeModal() { document.getElementById('modalOverlay').classList.remove('open'); }
 
-// ────────────────────────────────────────────────
+
 // NAVEGAÇÃO
-// ────────────────────────────────────────────────
 function switchView(view) {
   ['dashboard','archive','editor'].forEach(v => {
     document.getElementById('view-'+v).style.display = v === view ? 'block' : 'none';
@@ -171,6 +160,7 @@ function switchView(view) {
   const titleEl = document.getElementById('topbarTitle');
   titleEl.textContent = titles[view];
   titleEl.style.display = titles[view] ? 'block' : 'none';
+  
   // Esconde a nav quando editor está aberto
   const nav = document.querySelector('.bottomnav');
   if (view === 'editor') {
@@ -185,9 +175,7 @@ function switchView(view) {
   window.scrollTo(0,0);
 }
 
-// ────────────────────────────────────────────────
 // LISTAGENS
-// ────────────────────────────────────────────────
 function renderDashboard() {
   document.getElementById('kpiTotal').textContent = documents.length;
   document.getElementById('kpiRascunho').textContent = documents.filter(d=>d.status==='rascunho').length;
@@ -249,9 +237,7 @@ function buildList(list) {
     </div>`).join('')}</div>`;
 }
 
-// ────────────────────────────────────────────────
 // EDITOR
-// ────────────────────────────────────────────────
 function openEditor(id) {
   currentEditId = id;
   const ea = document.getElementById('editorArea');
@@ -400,7 +386,9 @@ function insertLink() {
 
 function saveDocument(status) {
   const title = document.getElementById('fTitle').value.trim() || t('unnamedFallback');
-  const typeCode = document.getElementById('fType').value; // código neutro: 'service', 'other', etc.
+  const typeCode = document.getElementById('fType').value;
+
+  // código neutro: 'service', 'other', etc.
   const typeCustom = document.getElementById('fTypeCustom').value.trim();
   const typeKeyMap = { service:'typeService', nda:'typeNDA', lease:'typeLease', sale:'typeSale', employment:'typeEmployment', poa:'typePOA', other:'typeOther' };
   const type = typeCode === 'other'
@@ -433,9 +421,7 @@ function saveDocument(status) {
   switchView('dashboard');
 }
 
-// ────────────────────────────────────────────────
 // IMPORTAR FICHEIRO
-// ────────────────────────────────────────────────
 function importFile(event) {
   const file = event.target.files[0];
   if (!file) return;
@@ -499,9 +485,7 @@ function importFile(event) {
   reader.readAsText(file, 'UTF-8');
 }
 
-// ────────────────────────────────────────────────
 // FOLHA DE DETALHE
-// ────────────────────────────────────────────────
 function openSheet(id) {
   currentSheetId = id;
   renderSheet();
@@ -594,9 +578,7 @@ function renderSheet() {
   if (doc.status === 'pendente') requestAnimationFrame(initSignaturePad);
 }
 
-// ────────────────────────────────────────────────
 // ELIMINAR
-// ────────────────────────────────────────────────
 function confirmDelete(id) {
   const doc = documents.find(d=>d.id===id);
   openModal(t('modalDeleteTitle'), t('modalDeleteMsg', doc.title), () => {
@@ -609,9 +591,7 @@ function confirmDelete(id) {
   });
 }
 
-// ────────────────────────────────────────────────
 // IMPRIMIR / PDF
-// ────────────────────────────────────────────────
 function printDocument(id) {
   const doc = documents.find(d=>d.id===id);
   if (!doc) return;
@@ -723,9 +703,7 @@ function _printFallback(html) {
   showToast(t('popupWarn'));
 }
 
-// ────────────────────────────────────────────────
 // EXPORTAR COMO .TXT
-// ────────────────────────────────────────────────
 function htmlToPlainText(html) {
   if (!html) return '';
   const tmp = document.createElement('div');
@@ -789,9 +767,7 @@ function exportDocumentTxt(id) {
   showToast(t('toastExported'));
 }
 
-// ────────────────────────────────────────────────
 // DUPLICAR CONTRATO
-// ────────────────────────────────────────────────
 function duplicateDocument(id) {
   const doc = documents.find(d=>d.id===id);
   if (!doc) return;
@@ -815,9 +791,7 @@ function duplicateDocument(id) {
   openSheet(copy.id);
 }
 
-// ────────────────────────────────────────────────
 // ASSINATURA DIGITAL
-// ────────────────────────────────────────────────
 function initSignaturePad() {
   const canvas = document.getElementById('sigCanvas');
   if (!canvas) return;
@@ -870,9 +844,7 @@ async function confirmSignature() {
   renderDashboard();
 }
 
-// ────────────────────────────────────────────────
 // LINKS EXTERNOS — abre direto sem confirmação
-// ────────────────────────────────────────────────
 function openExternal(url) {
   const a = document.createElement('a');
   a.href = url;
@@ -883,9 +855,7 @@ function openExternal(url) {
   setTimeout(() => a.remove(), 100);
 }
 
-// ────────────────────────────────────────────────
 // PAINEL INFO
-// ────────────────────────────────────────────────
 function toggleInfo() {
   const overlay = document.getElementById('infoOverlay');
   const btn = document.getElementById('infoBtn');
@@ -897,9 +867,7 @@ function handleInfoOverlay(e) {
   if (e.target === document.getElementById('infoOverlay')) toggleInfo();
 }
 
-// ────────────────────────────────────────────────
 // BACKUP / RESTAURO (JSON)
-// ────────────────────────────────────────────────
 const BACKUP_VERSION = 1;
 
 function exportBackupJson() {
@@ -1009,11 +977,8 @@ document.addEventListener('selectionchange', function() {
   }
 });
 
-// ────────────────────────────────────────────────
-// TIPO DE CONTRATO — resolução em tempo real
-// ────────────────────────────────────────────────
-// Converte typeCode neutro → texto traduzido no idioma actual.
-// Suporta também documentos legados (sem typeCode) com mapeamento retroactivo.
+/* TIPO DE CONTRATO — resolução em tempo real. Converte typeCode neutro → texto traduzido no idioma actual.
+Suporta também documentos legados (sem typeCode) com mapeamento retroactivo.*/
 function getDocTypeLabel(doc) {
   const typeKeyMap = {
     service:'typeService', nda:'typeNDA', lease:'typeLease',
@@ -1027,9 +992,7 @@ function getDocTypeLabel(doc) {
   return doc.type || '';
 }
 
-// ────────────────────────────────────────────────
 // INTERNATIONALISATION (i18n)
-// ────────────────────────────────────────────────
 const TRANSLATIONS = {
   en: {
     tagline: 'Contract Management',
@@ -1477,10 +1440,7 @@ function setLang(lang) {
   applyLang();
 }
 
-// ────────────────────────────────────────────────
 // CURRENCY SMART PICKER
-// ────────────────────────────────────────────────
-
 // Traduções dos nomes das moedas por idioma (apenas para EN/FR/ES; PT usa os nomes originais do array)
 const CURRENCY_NAMES = {
   en: {
@@ -1675,9 +1635,7 @@ document.addEventListener('click', function(e) {
   if (wrap && !wrap.contains(e.target)) closeCurrencyDropdown();
 });
 
-// ────────────────────────────────────────────────
 // TEMA CLARO / ESCURO
-// ────────────────────────────────────────────────
 let currentTheme = localStorage.getItem('nexdoc_theme') || 'dark';
 
 function applyTheme(theme) {
@@ -1697,9 +1655,7 @@ function toggleTheme() {
   applyTheme(currentTheme === 'dark' ? 'light' : 'dark');
 }
 
-// ────────────────────────────────────────────────
 // LOGO DO PDF
-// ────────────────────────────────────────────────
 function handleLogoUpload(event) {
   const file = event.target.files[0];
   if (!file) return;
@@ -1742,7 +1698,6 @@ function renderLogoPreview() {
   }
 }
 
-// ────────────────────────────────────────────────
 // INIT
 applyTheme(currentTheme);
 applyLang(); // renders dashboard + archive + applies all translations
