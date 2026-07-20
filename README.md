@@ -1,5 +1,7 @@
 **NexDoc** é uma aplicação web de gestão de contratos desenhada para quem precisa de criar, assinar e arquivar documentos sem criar conta, sem depender de servidor.
 
+![preview](nexdoc.webp)
+
 **O que faz**
 
 Crias um contrato do zero ou importas um ficheiro existente (TXT, HTML ou DOCX), editas com um editor de texto rico com ferramentas de formatação — negrito, itálico, sublinhado, títulos, citações, listas ordenadas e não ordenadas, alinhamento, cores de texto e de fundo, hiperligações — e guardas como rascunho ou envias para assinatura. Quando chega a hora de assinar, desenhas a tua assinatura digital diretamente no ecrã. O documento fica selado com um hash SHA-256 (calculado sobre o conteúdo do contrato) que garante a autenticidade do conteúdo. No final, abres o diálogo de impressão e escolhes "Guardar como PDF".
