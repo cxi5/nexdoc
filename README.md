@@ -1,4 +1,5 @@
-# NexDoc
+# NexDoc 
+**🔗 Live:** [https://cxi5.github.io/nexdoc/](https://cxi5.github.io/nexdoc/)
 
 > Gestão de contratos no browser — sem conta, sem servidor, sem dados a sair do teu dispositivo.
 
