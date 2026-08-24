@@ -43,41 +43,6 @@
 
 ---
 
-## Estrutura do projeto
-
-```
-nexdoc/
-├── index.html          # App principal
-├── css/
-│   └── nexdoc.css      # Estilos (tema claro/escuro, layout, editor)
-├── js/
-│   └── nexdoc.js       # Lógica (contratos, assinatura, backup, i18n)
-├── img/
-│   └── nexdoc.webp     # Imagem de preview
-└── README.md
-```
-
-Todos os caminhos são relativos. Basta abrir o `index.html` no browser ou servir a pasta em qualquer servidor estático (GitHub Pages, Netlify, etc.).
-
----
-
-## Como usar localmente
-
-```bash
-# Clona o repositório (quando estiver no GitHub)
-git clone https://github.com/SEU_USER/nexdoc.git
-cd nexdoc
-
-# Abre no browser
-xdg-open index.html   # Linux
-open index.html       # macOS
-# ou arrasta o ficheiro para o browser / abre pelo gestor de ficheiros
-```
-
-Não há build step nem dependências para instalar. A única dependência externa é o **mammoth.js** (CDN), usada só na importação de DOCX.
-
----
-
 ## Limitações conhecidas
 
 - O editor **não suporta tabelas** (mesmo que apareçam referências noutros materiais).
@@ -89,9 +54,3 @@ Não há build step nem dependências para instalar. A única dependência exter
 ## Privacidade
 
 Os contratos, o logótipo, o tema e o idioma ficam no `localStorage` do browser. Se limpares os dados do site, perdes o que não tiveres exportado em JSON. O backup JSON exporta apenas os contratos — convém fazer backup com regularidade se os documentos forem importantes.
-
----
-
-## Licença e contribuição
-
-Se fores usar ou adaptar este projecto, mantém a atribuição quando fizer sentido. Melhorias e correções são bem-vindas.
